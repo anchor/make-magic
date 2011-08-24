@@ -1,0 +1,12 @@
+- Install python2.6 or newer
+
+- Install mongodb (version 1.8 works)
+
+- Install cherrypy3 (either from your distro PyPi)
+
+- Install the following from PyPi using easy_install or pip:
+
+	pip install digraphtools
+	pip install requests
+
+- Read QUICKSTART
