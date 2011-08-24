@@ -1,0 +1,49 @@
+If you want to build a new server, and you're talking to someone who isn't
+a sysadmin, the stuff that you know is generally going to go something like
+this:
+
+	Someone needs a server. They want one of those
+	Linux ones, have a gopher server, and they want
+	it blue. Several other requirements specific to
+	them
+
+	   |
+	   V
+
+	A miracle happens
+
+	   |
+	   V
+
+	Really specific list of things to do to make it happen: 
+	Figure out a hostname. Allocate an IP. Put the IP in DNS.
+	Get the right VLAN. Go to the store and get some blue paint.
+	Get a hypervisor with enough free capacity. Put the host in 
+	the accounting system. Setup the guest. Configure the installer 
+	for the required distro.  kick off the install. Add some user 
+	accounts. Setup a gopher server. Firewall the gopher server 
+	from Jeremy because he doesn't like blue (and dozens more)
+
+	   |
+	   V
+
+	Do the stuff in the list
+
+
+The miracle is normally a sysadmin. She's probably also got about 50
+scripts to automate the rest as well, because like any good sysadmin,
+her first priority was to automate herself out of a job. It will still
+take a while to go through and run them in the right order, but for
+more complicated builds, there's no one-size-fits-all script, so bits
+and pieces around the place will have to be set off by hand.
+
+make magic is desiged to be the miracle.
+
+It figures out what has to be done, what order to do it in. It
+keeps track of which steps have been done, and makes sure that 
+everything is done a correct right order.   It can hook into 
+systems like mudpuppy and orchestra to automate the steps 
+themselves, the combination of which can do complex, unique
+builds without any human intervention.
+
+

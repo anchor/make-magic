@@ -1,0 +1,42 @@
+[
+ {
+  "name": "wake_up"
+ }, 
+
+ {
+  "name": "get_up",
+  "depends": [ "wake_up" ]
+ }, 
+
+ {
+  "name": "make_breakfast",
+  "depends": [ "get_up" ]
+ }, 
+
+ {
+  "name": "eat_breakfast",
+  "depends": [ "make_breakfast" ]
+ }, 
+
+ {
+  "name": "make_coffee",
+  "depends": [ "get_up" ], 
+  "predicate": " coffee " 
+ }, 
+ {
+  "name": "drink_coffee",
+  "depends": [ "make_coffee" ], 
+  "predicate": " coffee "
+ }, 
+
+ {
+  "name": "walk_out_door",
+  "depends": [ "get_up", "eat_breakfast", "make_coffee" ]
+ }, 
+
+ {
+  "name": "go_to_work", 
+  "description": "Leave to go to work",
+  "depends": [ "walk_out_door", "eat_breakfast", "drink_coffee" ]
+ }
+]

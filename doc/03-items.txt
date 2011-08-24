@@ -1,0 +1,43 @@
+Items are just something that has to be done, like rebooting
+a server, finding an IP address, or installing some software.
+
+It's very flexible what the items can be; make magic only cares
+that there is something to do, if it needs to be done in this
+case, what needs to be done first and if it's done yet.
+
+If you want to automate any of the items though (and that's
+pretty much the point) these requirements have to be met
+for every item:
+
+
+* It's well defined. 
+
+Basically ask yourself, Can I automate this on it's own?
+If not, maybe it needs to be split up into multiple steps,
+or think of it more in terms of what you're trying to get
+done.
+
+* Knowing what needs to happen first
+
+You need to be clear what information you need to do the
+item, and what needs to happen before it does. e.g.
+before setting up the network on a system you probably
+need it's hostname, and need to have allocated an IP
+address.
+
+* There is a clear point at which it finishes.
+
+In almost every case, other items are going to be waiting
+until this item has finished, because it needs to rely on
+it having been done.  If you have a step called "Reboot the
+server", it's more likely what you really want is "Reboot
+the server and wait for it to come up again".
+
+* You can tell if it worked or not
+
+If you assume an item completed successfully without checking,
+other items that depend on it will run under the assumption
+everything is in a well known and consistent state, because
+everything before it ran correctly.  Blindly going ahead and
+doing stuff when things are already in a broken state will
+at best make it hard to debug, and at worst do damage.

@@ -1,0 +1,301 @@
+Take a look in INSTALL and install all the dependencies.
+
+Look at config.py and make sure it's pointing at your mongodb
+
+Kick off the HTTP API server by running: ./magic_httpd.py
+
+That's it! You're up and running!  Okay, so you probably want to do stuff
+with it at all.  There is a simple shell client to talk to the HTTP API for
+testing. For production, you'll want to use mudpuppy (or your own agent)
+to automate the individual items.
+
+
+OKAY, IT'S RUNNING, SO NOW SHOW ME MORE THAN JUST A BLINKING CURSOR!
+
+By default, make-magic is using an example set of possible items to do
+read from doc/sample_items.json, which is a simple list of steps for getting
+out of bed in the morning and going to work.  When you make a new task from
+this, the only requirement that it recognises is 'coffee'. If you say you
+require coffee, the steps to make it and drink it will be included.
+
+Let's get started. First, we can list the tasks that are currently being
+handled by make-magic:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py tasks
+	[]
+	davidb@kelp:~/src/make-magic$ 
+
+Not very interesting. Let's create a task, and say we require coffee.
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py task_create '{"requirements": [ "coffee" ]}'
+	{
+	 "items": [
+	  {
+	   "state": "INCOMPLETE", 
+	   "name": "TaskComplete", 
+	   "depends": [
+	    "go_to_work"
+	   ]
+	  }, 
+
+	(... many more items... )
+
+	  {
+	   "state": "INCOMPLETE", 
+	   "name": "make_coffee", 
+	   "depends": [
+	    "get_up"
+	   ]
+	  }
+	 ], 
+	 "metadata": {
+	  "requirements": [
+	   "coffee"
+	  ], 
+	  "uuid": "1ede91f0-6b39-4da9-8fe6-cc0b028ed349", 
+	  "metadata": true
+	 }
+	}
+	davidb@kelp:~/src/make-magic$ 
+
+mclient is pretty simple. Most of the time it will just talk the JSON that is
+part of the (vaguely RESTful) HTTP API.  make-magic has created a new task
+based on the requirements (in this case make_coffee and drink_coffee are in 
+there because we said we required coffee).  It's also allocated a uuid for the
+task. If we had wanted to, we could have added more key/value pairs, and they
+would have been added into the task metadata.
+
+If we hadn't told it we required coffee, it would have removed any reference to
+it, and nothing would depend on the removed items:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py task_create '{"requirements": []}'
+	{
+	 "items": [
+
+	     (... items in here but no making or drinking coffee ...)
+
+	 ], 
+	 "metadata": {
+	  "requirements": [], 
+	  "uuid": "301b925c-cf35-4195-8bfa-0fa41ccaf8c8", 
+	  "metadata": true
+	 }
+	}
+	davidb@kelp:~/src/make-magic$
+
+
+Let's list the tasks again:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py tasks
+	[
+	"1ede91f0-6b39-4da9-8fe6-cc0b028ed349",
+	"301b925c-cf35-4195-8bfa-0fa41ccaf8c8"
+	]
+	davidb@kelp:~/src/make-magic$ 
+
+Now it's showing the UUID for the tasks we just created. If we want, we can now
+ask for all the information associated with a task with: 
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py task 1ede91f0-6b39-4da9-8fe6-cc0b028ed349
+
+Okay, so there are a whole lot of things that need to be done, but some things
+depend on other things. What we really want is a list of things that need to be
+done, but which haven't had their dependencies satisfied yet. We can do this with:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py items_ready 1ede91f0-6b39-4da9-8fe6-cc0b028ed349
+	[
+	 {
+	  "state": "INCOMPLETE", 
+	  "name": "wake_up"
+	 }
+	]
+	davidb@kelp:~/src/make-magic$ 
+
+At the moment, the only thing that we can do at the moment is to wake up. If you
+were inclined to look through all the items and follow their dependencies, this is
+because you're not going to be able to get out of bed till you're awake, and you're
+not going to be able to do the rest of getting ready for work unless you're in bed
+etc. 
+
+What we'll do is change the state from INCOMPLETE, to IN_PROGRESS, and finally to
+COMPLETED:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py update_item_state 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 wake_up INCOMPLETE IN_PROGRESS
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py update_item_state 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 wake_up IN_PROGRESS COMPLETE
+
+Before a client does any work on an item, it first sets it's state to IN_PROGRESS so that
+other workers know not to also try and do it. When the client has finished successfully it
+sents the state to COMPLETE.
+
+	(Some notes on concurrency: update_item_state is pretty much the only time the client is doing 
+	anything other than a single HTTP request passing what it gets from the command line.  
+	The reason is that you will likely have multiple agents (or a single agents with 
+	multiple threads or processes) looking for items to do, and then moving them to 
+	IN_PROGRESS to do them.  To guard against race conditions, in this case the state
+	 will only be changed if it already matches the one that we've told it we're changing
+	from (the server enforces this atomically), and the client also passes a random token to the
+	server that will only come back if it's request was the one that succeeded)
+
+
+Now that we've gotten out of bed, if we check to see what items are ready again:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py items_ready 1ede91f0-6b39-4da9-8fe6-cc0b028ed349
+
+it will show the next step is 'get_up'. Let's complete that as well:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py update_item_state 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 get_up INCOMPLETE IN_PROGRESS
+	davidb@kelp:~/src/make-magic$ ./mclient.py update_item_state 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 get_up IN_PROGRESS COMPLETE
+
+(Yes, this gets boring pretty quick, but the whole point is to automate all this 
+stuff. Mudpuppy, which is also posted on anchor's github account, will do all this
+dealing with state stuff for you and let you write simple modules to do the steps)
+
+Now let's check what items are ready to go, because it's slightly more interesting
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py items_ready 1ede91f0-6b39-4da9-8fe6-cc0b028ed349
+	[
+	 {
+	  "state": "INCOMPLETE", 
+	  "name": "make_breakfast", 
+	  "depends": [
+	   "get_up"
+	  ]
+	 }, 
+	 {
+	  "state": "INCOMPLETE", 
+	  "name": "make_coffee", 
+	  "depends": [
+	   "get_up"
+	  ]
+	 }
+	]
+	davidb@kelp:~/src/make-magic$ 
+
+Now that we're out of bed, there are two things available to do. Make breakfast, or
+(because we said we needed it), make coffee. The important thing to note is that
+both of these can be done at the same time! Both of them have had all their dependencies
+completed; if one depended on the other from finishing, it wouldn't show up in the
+list.   One of the cool things about make-magic is that you can do multiple steps at the
+same time, and make-magic will keep track of which items are completed, which ones
+are needed by other items still, and figure out on the fly what has to be done next.
+
+You can now (if you desire) go through and do all the tasks in order. Myself, I'd recommend
+getting something like mudpuppy to automated them, which is indeed the whole point.
+
+There is a single special item that is created for automatically for each task, and 
+that's called TaskComplete.  
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py item 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 TaskComplete
+	{
+	 "state": "INCOMPLETE", 
+	 "name": "TaskComplete", 
+	 "depends": [
+	  "go_to_work"
+	 ]
+	}
+
+TaskComplete depends (indirectly) on every item in the task. If you ask make-magic
+for items that are ready, and it sees that the only item ready to go is TaskComplete,
+the server will set it to COMPLETED itself, and return back an empty list of things
+to do.
+
+
+MORE STUFF
+
+There is actually a few more useful things you can do. You can add and update items
+in the task metadata: 
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py metadata 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 
+	{
+	 "requirements": [
+	  "coffee"
+	 ], 
+	 "uuid": "1ede91f0-6b39-4da9-8fe6-cc0b028ed349", 
+	 "metadata": true
+	}
+	davidb@kelp:~/src/make-magic$ ./mclient.py update_metadata 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 '{"mornings_are": "meh"}'
+	(... previous metadata contents...) 
+
+	{
+	 "mornings_are": "meh", 
+	 "requirements": [
+	  "coffee"
+	 ], 
+	 "uuid": "1ede91f0-6b39-4da9-8fe6-cc0b028ed349", 
+	 "metadata": true
+	}
+	davidb@kelp:~/src/make-magic$ 
+
+
+We use it for things like saving the IP addresses that we've allocated to a
+server so that other items later on have easy access to it (like the ones
+setting up networking) without having to store it somewhere else.
+
+You can also add metadata to items in a very similar way:
+
+	davidb@kelp:~/src/make-magic$ ./mclient.py item 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 get_up
+	{
+	 "_change_state_token": 18106579636852, 
+	 "depends": [
+	  "wake_up"
+	 ], 
+	 "name": "get_up", 
+	 "state": "COMPLETE"
+	}
+	davidb@kelp:~/src/make-magic$ ./mclient.py update_item 1ede91f0-6b39-4da9-8fe6-cc0b028ed349 get_up '{"bed was": "comfy", "sleep": "good"}'
+	{
+	 "_change_state_token": 18106579636852, 
+	 "depends": [
+	  "wake_up"
+	 ], 
+	 "name": "get_up", 
+	 "state": "COMPLETE"
+	}
+
+	{
+	 "bed was": "comfy", 
+	 "name": "get_up", 
+	 "state": "COMPLETE", 
+	 "depends": [
+	  "wake_up"
+	 ], 
+	 "sleep": "good", 
+	 "_change_state_token": 18106579636852
+	}
+	davidb@kelp:~/src/make-magic$ 
+
+You can use this for pretty much anything. If automation fails and you have to 
+change it to the FAILED state, you add in debugging information as to why for
+example.
+
+Now you've gone through this, it's probably going to be more interesting to
+define your own items (we have hundreds in our own production environment).
+
+Rather than just having stuff filtering on a single requirement, you can filter
+an individual item on many different ones, e.g.:
+
+	{
+		"name": 	"do_something",
+		"if":		"(os.debian | os.rhel5) & hardware.vm & ( ! support_level.basic )",
+		"depends": [
+			"reboot_debian", "reboot_rhel"
+		]
+	}
+
+would only turn up in a task if the requirements included "os.debian" or "os.rhel5", 
+also included "hardware.vm", but didn't include "support_level.basic". 
+
+It might at first seem a bit seem a bit weird that it's depending on both
+reboot_debian and reboot_rhel, but the definition of reboot_debian
+will almost certainly include "if": "os.debian" at the very least, and
+similar for RHEL;  Any dependencies that are filtered out by their own
+'if' entries will also be removed from any dependencies when a task is
+created.
+
+This works much better than you would first expect; It also gives you
+the ability to build a complex list of item dependencies without having
+to explicitly define every single permutation of tasks that can be
+generated from requirements (in our case we would die of old age before
+being able to define them by hand).  This is part of what makes
+make-magic so cool.

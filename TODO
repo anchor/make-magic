@@ -1,0 +1,21 @@
+- predicate implementation
+- state machine implementation
+- external interface (e.g. http, xml-rpc, carrier pidgeon)
+- storage of currently active tasks
+	* Can likely to be something quite simple like mongodb
+	* Have a unique task id
+	* Have a few objects below that:
+		- items
+		- dependencies
+		- task state
+		- item state etc.
+  Note: ONLY currently active tasks. anything else can be archived / dumped to
+  logs once a task is complete!  (preferably as JSON or something).   If people
+  want access to old task data, it would be better to have it as part of a
+  seperate database rather than cluttering the design of the ephemeral data
+
+- Replace DeprecatedDependencyMagic with a TaskDependencyManager
+  This can know about internal structure of tasks, and might be able to offload
+  some of the magic from TaskFactory
+
+- Clean up many, many things

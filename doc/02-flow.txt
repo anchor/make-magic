@@ -1,0 +1,17 @@
+When we want to create a new build, to start with we:
+
+1) Get some requirements
+2) Get the list of anything we know how to do
+3) Use the requirements to cut down the list to just what we need to do
+4) Figure out what order things should be done in
+
+We get this together, and also assign some state to each item that
+has to be done for the build (initially just that it isn't done yet).
+
+A client can come along and ask which step need to be done next.
+We look for a step that hasn't been done yet, but which has already
+had all the steps it depends on done.
+
+The client can then say it's working on the step. It can later on come
+back saying that it managed to do it, failed at doing it, or just doesn't
+know how how to do that one.
