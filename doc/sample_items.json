@@ -21,12 +21,12 @@
  {
   "name": "make_coffee",
   "depends": [ "get_up" ], 
-  "predicate": " coffee " 
+  "if": " coffee " 
  }, 
  {
   "name": "drink_coffee",
   "depends": [ "make_coffee" ], 
-  "predicate": " coffee "
+  "if": " coffee "
  }, 
 
  {
