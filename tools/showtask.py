@@ -88,7 +88,6 @@ class MonitorTask(ShowStuff):
 			if col:
 				self.set_color(k,col)
 			if self.labels[k].get_text() != v:
-				print "updating text"
 				self.labels[k].set_text(v)
 		return True
 
