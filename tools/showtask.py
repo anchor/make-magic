@@ -30,7 +30,7 @@ class ShowStuff(object):
 		window.set_title(title)
 		window.connect('destroy', lambda win: gtk.main_quit())
 		window.set_border_width(5)
-
+		window.resize(500,300)
 		sw = gtk.ScrolledWindow()
 		window.add(sw)
 		vp = gtk.Viewport()
@@ -65,7 +65,6 @@ class ShowStuff(object):
 		print "update timer"
 		return True
 
-
 class MonitorTask(ShowStuff):
 	def __init__(self, uuid, interval=1000):
 		self.magic = lib.magic.Magic()
@@ -74,23 +73,28 @@ class MonitorTask(ShowStuff):
 		self.window.set_title("make-magic task: "+uuid)
 
 	def get_task_tuples(self):
+		rtor = self.magic.ready_to_run(self.uuid)
+		rtor = ", ".join(item['name'] for item in rtor)
+		yield(("Ready to run", rtor, "lightblue"))
 		task = self.magic.get_task(self.uuid)
 		for item in task['items']:
-			color = "green" if item['state'] == 'COMPLETED' else None
+			color = "green" if item['state'] == 'COMPLETE' else None
 			item.pop('depends',None)
 			desc = ', '.join(str(k)+": "+str(v) for k,v in item.items())
 			yield (item['name'], desc, color)
 		
 	def update_stuff(self):
-		print "updating"
+		for k,v,col in self.get_task_tuples():
+			if col:
+				self.set_color(k,col)
+			if self.labels[k].get_text() != v:
+				print "updating text"
+				self.labels[k].set_text(v)
 		return True
 
 def monitor_task(uuid):
-	mt = MonitorTask(uuid)
+	mt = MonitorTask(uuid,100)
 	gtk.main()
 
 if __name__ == "__main__":
-	#stuff = (('a', "Hello", 'green'), ('b', "World", None))
-	#ShowStuff(stuff)
-	#gtk.main()
 	monitor_task(sys.argv[1])
