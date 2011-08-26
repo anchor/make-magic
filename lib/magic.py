@@ -108,7 +108,7 @@ class Magic(object):
 		ready =  self.dependency_strategy.ready_to_run(task.items)
 		# FIXME: Evil, Evil hack
 		if 'TaskComplete' in (r.name for r in ready):
-			self.update_item(uuid, 'TaskComplete', {'data': {'state': 'COMPLETED'}})
+			self.update_item(uuid, 'TaskComplete', {'state': 'COMPLETE'})
 			return self.ready_to_run(uuid)
 		ready =  self.dependency_strategy.ready_to_run(task.items)
 		return [converter.item_to_itemdict(item) for item in ready]
