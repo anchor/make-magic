@@ -37,7 +37,7 @@ take a while to go through and run them in the right order, but for
 more complicated builds, there's no one-size-fits-all script, so bits
 and pieces around the place will have to be set off by hand.
 
-make magic is desiged to be the miracle.
+make-magic is desiged to be the miracle.
 
 It figures out what has to be done, what order to do it in. It
 keeps track of which steps have been done, and makes sure that 
@@ -46,4 +46,7 @@ systems like mudpuppy and orchestra to automate the steps
 themselves, the combination of which can do complex, unique
 builds without any human intervention.
 
+mudpuppy (a python based automation agent to do the tasks that
+make-magic sets it) is available at:
 
+https://github.com/anchor/mudpuppy

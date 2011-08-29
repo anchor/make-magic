@@ -182,6 +182,7 @@ are needed by other items still, and figure out on the fly what has to be done n
 
 You can now (if you desire) go through and do all the tasks in order. Myself, I'd recommend
 getting something like mudpuppy to automated them, which is indeed the whole point.
+See: https://github.com/anchor/mudpuppy
 
 There is a single special item that is created for automatically for each task, and 
 that's called TaskComplete.  
