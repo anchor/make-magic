@@ -110,7 +110,7 @@ class SimpleDependencyStrategy(BaseDependencyStrategy):
 		'''filter items in the dependency graph INPLACE based on the supplied requirements
 		It's highly recommended you only do this on item instances and not classes as
 		it alters or the depends attribute on all items in the supplied DAG '''
-		items = cls.iterate_item_dependencies(item)
+		items = set(cls.iterate_item_dependencies(item))
 		keptitems = set(filter(lambda i: unbound(i.predicate)(requirements), items))
 		droppeditems = set(items).difference(keptitems)
 
