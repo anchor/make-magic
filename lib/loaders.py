@@ -24,17 +24,16 @@ class TaskFactory(object):
 		items = self.dependency_strategy.instantiate_items(self.classes)
 		items = set(items.values())	# TODO: Fix instantiate_items return. this is unintuitive
 
+		# Filter out things that aren't for this task
+		items = self.dependency_strategy.filter_dependency_graph(requirements, items)
+
 		# Define a clear goal node that all existing goals depend on
 		goal = TaskComplete(self.dependency_strategy.find_goal_nodes(items))
 		items.add(goal)
 		assert set(self.dependency_strategy.early_iter_all_items(goal)) == items
-
-		# Filter out things that aren't for this task
-		goal = self.dependency_strategy.filter_dependency_graph(requirements, goal)
 		assert goal.name == 'TaskComplete'
 
 		# Unroll groups
-		items = set(self.dependency_strategy.early_iter_all_items(goal))
 		items = self.dependency_strategy.make_group_dependencies_explicit_for_items(items)
 		assert goal in items
 

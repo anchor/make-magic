@@ -57,6 +57,13 @@ class BaseDependencyStrategy:
 class SimpleDependencyStrategy(BaseDependencyStrategy):
 	'''Reasonably generic strategy for working with dependencies
 	Requires implementation of some things by other strategies
+
+	FIXME: THIS CLASS SHOULD NEVER ACTUALLY BE USED AND SHOULD BE REMOVED ASAP
+
+	Most of the code in it is evil, some of it actually broken (although not
+	called), and the calls that are depended on should be rewritten in a sane way.
+
+	Having this code here is dangerous as people might try to call it directly.
 	'''
 
 	@classmethod
@@ -106,21 +113,29 @@ class SimpleDependencyStrategy(BaseDependencyStrategy):
 		yield item
 
 	@classmethod
-	def filter_dependency_graph(cls, requirements, item):
+	def filter_dependency_graph(cls, requirements, items):
 		'''filter items in the dependency graph INPLACE based on the supplied requirements
 		It's highly recommended you only do this on item instances and not classes as
 		it alters or the depends attribute on all items in the supplied DAG '''
-		items = set(cls.iterate_item_dependencies(item))
+
 		keptitems = set(filter(lambda i: unbound(i.predicate)(requirements), items))
 		droppeditems = set(items).difference(keptitems)
 
-		for dropped in droppeditems: del(dropped.depends) # Drop possible circular refs to filtered instances
 		for survivor in keptitems:
 			# Drop references to filtered instances
 			survivor.depends = tuple(dep for dep in survivor.depends if dep in keptitems)
-		if item not in keptitems:
-			return None
-		return item
+			# Do the same for groups
+			if hasattr(survivor,'contains'):
+				survivor.contains = tuple(k for k in survivor.contains if k in keptitems)
+
+		# Drop references from filtered instances
+		# Although this shouldn't matter, it actually does help make subtle errors more obvious
+		# if this code itself is broken
+		for dropped in droppeditems: 
+			dropped.depends = None
+
+		assert keptitems.isdisjoint(droppeditems)
+		return keptitems
 
 	@classmethod
 	def instantiate_items(cls, items):
@@ -224,7 +239,13 @@ class GraphDependencyStrategy(SimpleDependencyStrategy):
 	a graph is represented as a 2tuple of a node, and a list of nodes connected to it's outgoing edges
 
 	graphs calls are generally passed by goal node, with dependencies on the goal being 
-	it's outgoing edges'''
+	it's outgoing edges
+
+	FIXME: THIS CLASS SHOULD NEVER ACTUALLY BE USED AND SHOULD BE REMOVED ASAP
+
+	Having this code here is dangerous as people might try to call it. Theoretically
+	nothing should be called in it and it is only used as a reference point for testing
+	'''
 
 	@classmethod
 	def get_graph(cls, item, seen=None):
