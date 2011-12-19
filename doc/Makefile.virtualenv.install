@@ -1,0 +1,28 @@
+##
+## A makefile to clone the latest make-magic into a standalone virtualenv, 
+## and install it's python dependencies
+##
+## using pip to install make-magic's dependencies is going to be way cooler though
+##
+
+deploy: deploy-clone-git deploy-python-env deploy-dev
+
+deploy-clone-git:
+	git clone git://github.com/anchor/make-magic.git
+
+deploy-python-env:
+	virtualenv make-magic --no-site-packages
+	. make-magic/bin/activate && \
+	pip install 'digraphtools==0.2.1' 'requests>=0.7' 'CherryPy>=3' 'pymongo=>2.1'
+
+deploy-dev:
+	. make-magic/bin/activate && \
+	pip install 'unittest2>=0.5'
+
+test:
+	. make-magic/bin/activate && \
+	cd make-magic && \
+	python -m tests.test
+	
+
+
