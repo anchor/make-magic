@@ -59,7 +59,7 @@ class ShowStuff(object):
 		GObject.timeout_add(update_interval, self.update_stuff)
 
 	def set_color(self, k, col):
-		self.ebox[k].modify_bg(gtk.StateType.NORMAL, gdk.color_parse(col)[1])
+		self.ebox[k].modify_bg(gtk.StateType.NORMAL, gdk.color_parse(col))
 
 	def update_stuff(self):
 		print "update timer"
