@@ -153,5 +153,9 @@ def run_httpd():
 	cpconfig = {'global': {'server.socket_host': config.httpd_listen_address, 'server.socket_port': config.httpd_listen_port}}
 	cherrypy.quickstart(get_cherrypy_root(magiclib), config=cpconfig)
 
+def get_wsgi_application():
+	root = get_cherrypy_root(lib.magic.Magic())
+	return cherrypy.Application(root, '/')
+
 if __name__ == '__main__':
 	run_httpd()
