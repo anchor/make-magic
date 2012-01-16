@@ -57,9 +57,9 @@ class ObjectItemLoader(object):
 		class_dict = dict((cls.__name__, cls) for cls in classes)
 		for cls in classes:
 			# TODO: Warn more sanely about dependencies on non-existant items
-			cls.depends = tuple(class_dict[c] for c in cls.depends)
+			cls.depends = tuple(class_dict[marsh.normalise_item_name(c)] for c in cls.depends)
 			if issubclass(cls, Group):
-				cls.contains = tuple(class_dict[c] for c in cls.contains)
+				cls.contains = tuple(class_dict[marsh.normalise_item_name(c)] for c in cls.contains)
 
 		return TaskFactory(classes)
 
